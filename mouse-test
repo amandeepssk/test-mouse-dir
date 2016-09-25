@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+
+#if [ -z $(which jstest) ]; then
+#    sudo apt-get install joystick
+#fi
+#
+#if [ -c $INPUT ]; then
+#    jstest --event $INPUT | ./wheelangle
+#else
+#    echo "Joystick device not found at $INPUT"
+#fi
+
+import struct, time, sys
+file = open( "/dev/input/mice", "rb" );
+
+def getMouseEvent():
+  buf = file.read(3);
+  button = ord( buf[0] );
+  bLeft = button & 0x1;
+  bMiddle = ( button & 0x4 ) > 0;
+  bRight = ( button & 0x2 ) > 0;
+  x,y = struct.unpack( "bb", buf[1:] );
+  #print ("L:%d, M: %d, R: %d, x: %d, y: %d\n" % (bLeft,bMiddle,bRight, x, y) );
+  return x,y
+
+js_y = 0
+while( 1 ):
+  x,y = getMouseEvent()
+
+  js_y += x*100
+  if (js_y > 32700):
+    js_y = 32700
+  if (js_y < -32700):
+    js_y = -32700
+
+  print ("type 2,b,c,value %d" % js_y)
+  sys.stdout.flush()
+
+file.close();
